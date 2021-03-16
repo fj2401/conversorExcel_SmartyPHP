@@ -1,0 +1,65 @@
+COLUMNA 1	COLUMNA 2			COLUMNA 3
+
+CABECERA 	 1_lang_core
+
+COMENTARIO	Plantillas HTML	
+
+SMARTY		msg_elige_tipo_abono_003 	Al cobro
+
+
+<?php
+require 'vendor/autoload.php';
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+$spreadsheet = new Spreadsheet();
+
+$archivo=$_FILES['fichero'];
+$nombre = $archivo['name'];
+$tipo=$archivo['type'];
+var_dump($nombre);
+$datos[]=null;
+if($archivo){
+
+    if(!is_dir('Ficheros')){
+        mkdir('Ficheros',0777);
+    }
+
+    move_uploaded_file($archivo['tmp_name'], 'Ficheros/'.$nombre);
+    $fp = fopen('Ficheros/'.$nombre, "r");
+    while (!feof($fp)){
+        $linea = fgets($fp);
+        // $lineaSinEspacios=$linea;
+        $lineaSinEspacios=trim($linea);
+        $identidicador=substr($lineaSinEspacios , 0, 7);
+        var_dump($identidicador);
+        // if ($lineaSinEspacios) {
+        //     # code...
+        // } elseif ($a == $b) {
+        //     echo "a es igual que b";
+        // }  else {
+        //     # code...
+        // }
+        
+
+        array_push($datos,$lineaSinEspacios);
+    }
+
+    fclose($fp);
+    $columnArray = array_chunk($datos, 1);
+    $spreadsheet->getActiveSheet()
+        ->fromArray(
+            $columnArray,        // Array values with this value will not be set
+            'A1'         // Top left coordinate of the worksheet range where
+                        //    we want to set these values (default is A1)
+        );
+
+    $writer = new Xlsx($spreadsheet);
+    if(!is_dir('FicherosConvertidosExcel')){
+        mkdir('FicherosConvertidosExcel',0777);
+    }
+    $writer->save('FicherosConvertidosExcel/fichero2.XLSX');
+}else{
+    header("Refresh: 5; URL=generFichero.php");
+    echo "sube una imagen con un formato correcto, por favor...</h1>";
+}
